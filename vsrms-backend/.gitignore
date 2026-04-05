@@ -1,5 +1,30 @@
-node_modules
+# ── Dependencies ───────────────────────────────────────────────
+node_modules/
+
+# ── SECRETS / ENVIRONMENT ──────────────────────────────────────
+# Never commit your real .env — use .env.example as the template
 .env
-.DS_Store
-coverage/
+.env.*
+!.env.example
+
+# ── Logs ───────────────────────────────────────────────────────
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Build artifacts ────────────────────────────────────────────
+dist/
+build/
+
+# ── Test coverage ──────────────────────────────────────────────
+coverage/
+
+# ── OS ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ─────────────────────────────────────────────────────
+.vscode/
+.idea/

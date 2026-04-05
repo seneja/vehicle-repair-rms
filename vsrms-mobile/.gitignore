@@ -30,8 +30,20 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# ── SECRETS / ENVIRONMENT ──────────────────────────────────────
+# Never commit your real .env — use .env.example as the template
+.env
+.env.*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+
+app-example
+
+# generated native folders
+/ios
+/android
 
 # typescript
 *.tsbuildinfo

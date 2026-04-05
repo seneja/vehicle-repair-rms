@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -65,6 +66,16 @@ function AnimatedTabIcon({
 }
 
 export default function TabsLayout() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <View style={{ flex: 1, backgroundColor: WHITE }} />;
+  }
+
+  if (!user) {
+    return <Redirect href="/auth/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{

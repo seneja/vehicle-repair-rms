@@ -1,0 +1,20 @@
+# ── OS / Editor ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VSCode
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+
+# ── Secrets / Environment ───────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+docs/

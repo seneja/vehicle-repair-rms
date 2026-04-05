@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 
 // WSO2 / Asgardeo brand palette
 const BRAND   = '#FF7300';   // WSO2 orange
@@ -28,6 +29,7 @@ const DIVIDER = '#E5E7EB';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn } = useAuth();
 
   const [persona, setPersona] = useState<'owner' | 'garage' | 'admin' | 'staff'>('owner');
   const [email,    setEmail]    = useState('');
@@ -38,11 +40,13 @@ export default function LoginScreen() {
 
   const canSubmit = email.trim().length > 0 && password.length >= 1;
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!canSubmit) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await signIn(email, password, persona);
+      
+      // Navigate on success
       if (persona === 'owner') {
         router.replace('/tabs' as any);
       } else if (persona === 'admin') {
@@ -52,7 +56,11 @@ export default function LoginScreen() {
       } else {
         router.replace('/garage' as any);
       }
-    }, 1500);
+    } catch (error: any) {
+      alert('Authentication failed: ' + (error.message || 'Invalid credentials'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle = (field: string) => [
