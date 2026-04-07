@@ -14,6 +14,8 @@ Node.js + Express REST API for the Vehicle Service & Repair Management System.
 
 ## Local Setup
 
+> **Note:** If you are running MongoDB locally, make sure the `mongod` service is running. See [../docs/setup.md](../docs/setup.md) for OS-specific instructions.
+
 ### 1. Install dependencies
 ```bash
 npm install

@@ -100,6 +100,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (id_token) await SecureStore.setItemAsync('asgardeo_id_token', id_token);
       await SecureStore.setItemAsync('asgardeo_user_info', JSON.stringify(userInfo));
 
+      // Sync user profile with the backend
+      try {
+        const backendBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+        await axios.post(`${backendBaseUrl}/auth/sync-profile`, {}, {
+          headers: { Authorization: `Bearer ${access_token}` }
+        });
+      } catch (syncErr) {
+        console.warn('Could not sync user profile with backend.', syncErr);
+      }
+
       setUser(userInfo);
     } catch (error: any) {
       console.error('Sign In Error:', error?.response?.data || error.message);

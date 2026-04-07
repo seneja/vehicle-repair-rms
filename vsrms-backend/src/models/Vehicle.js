@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const vehicleSchema = new mongoose.Schema(
   {
     ownerId:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    registrationNo: { type: String, required: true, unique: true, uppercase: true, trim: true },
+    registrationNo: { type: String, required: true, uppercase: true, trim: true },
     make:           { type: String, required: true, trim: true },
     model:          { type: String, required: true, trim: true },
     year:           { type: Number, required: true, min: 1990, max: new Date().getFullYear() + 1 },
