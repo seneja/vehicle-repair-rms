@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { colors } from '@/theme/tokens';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
@@ -12,9 +12,18 @@ interface ScreenWrapperProps {
 
 export function ScreenWrapper({ children, scroll = false, bg }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
+  const { theme } = useUnistyles();
 
   const content = (
-    <View style={[styles.container, { paddingBottom: insets.bottom, backgroundColor: bg || colors.background }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingBottom: insets.bottom,
+          backgroundColor: bg ?? theme.colors.background,
+        },
+      ]}
+    >
       {children}
     </View>
   );
@@ -29,11 +38,7 @@ export function ScreenWrapper({ children, scroll = false, bg }: ScreenWrapperPro
   return content;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-  },
-});
+const styles = StyleSheet.create(() => ({
+  container: { flex: 1 },
+  scroll: { flexGrow: 1 },
+}));

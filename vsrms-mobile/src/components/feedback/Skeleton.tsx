@@ -1,16 +1,42 @@
-import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import React, { useEffect, useRef } from 'react';
+import { View, Animated } from 'react-native';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+
+function ShimmerBox({ width, height, borderRadius = 8 }: { width: number | string; height: number; borderRadius?: number }) {
+  const opacity = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 750, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.4, duration: 750, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={{
+        width, height, borderRadius,
+        backgroundColor: '#E5E7EB',
+        opacity,
+      }}
+    />
+  );
+}
 
 export function VehicleSkeleton() {
+  const { theme } = useUnistyles();
 
   return (
     <View style={styles.container}>
-      {[1, 2, 3, 4].map(idx => (
-        <View key={idx} style={styles.card}>
-          <View style={styles.avatar} />
+      {[0, 1, 2, 3].map((idx) => (
+        <View key={idx} style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <ShimmerBox width={52} height={52} borderRadius={12} />
           <View style={styles.textGroup}>
-            <View style={styles.title} />
-            <View style={styles.subtitle} />
+            <ShimmerBox width="70%" height={16} borderRadius={6} />
+            <View style={{ height: 6 }} />
+            <ShimmerBox width="45%" height={12} borderRadius={6} />
           </View>
         </View>
       ))}
@@ -18,11 +44,19 @@ export function VehicleSkeleton() {
   );
 }
 
-const styles = StyleSheet.create(theme => ({
-  container: { padding: theme.spacing.md, gap: theme.spacing.md },
-  card: { flexDirection: 'row', backgroundColor: theme.colors.surface, padding: theme.spacing.md, borderRadius: theme.radii.lg },
-  avatar: { width: 40, height: 40, borderRadius: theme.radii.full, backgroundColor: theme.colors.border, marginRight: theme.spacing.md },
-  textGroup: { flex: 1, justifyContent: 'center' },
-  title: { width: '80%', height: 16, backgroundColor: theme.colors.border, borderRadius: theme.radii.sm, marginBottom: theme.spacing.xs },
-  subtitle: { width: '50%', height: 12, backgroundColor: theme.colors.border, borderRadius: theme.radii.sm },
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    padding: theme.spacing.md,
+    gap: theme.spacing.sm,
+  },
+  card: {
+    flexDirection: 'row',
+    padding: theme.spacing.md,
+    borderRadius: theme.radii.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    gap: 14,
+  },
+  textGroup: { flex: 1 },
 }));

@@ -174,21 +174,20 @@ export function BookAppointmentScreen() {
         {/* DATE */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Preferred Date *</Text>
-          <TouchableOpacity style={styles.dateBtn} onPress={() => setShowDatePicker(true)} activeOpacity={0.8}>
+          <View style={styles.dateInputRow}>
             <Ionicons name="calendar-outline" size={18} color="#F56E0F" />
-            <Text style={styles.dateBtnText}>
-              {date.toLocaleDateString('en-LK', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              minimumDate={new Date(Date.now() + 86400000)}
-              onChange={(_, d) => { setShowDatePicker(Platform.OS === 'ios'); if (d) setDate(d); }}
+            <TextInput
+              style={styles.dateInput}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#9CA3AF"
+              value={dateStr}
+              onChangeText={setDateStr}
+              keyboardType="numbers-and-punctuation"
+              returnKeyType="done"
+              maxLength={10}
             />
-          )}
+          </View>
+          <Text style={styles.dateHint}>Enter date in YYYY-MM-DD format (must be tomorrow or later)</Text>
           {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
         </View>
 
@@ -271,12 +270,13 @@ const styles = StyleSheet.create(() => ({
   chipText: { fontSize: 13, fontWeight: '700', color: '#6B7280' },
   chipTextActive: { color: '#F56E0F' },
 
-  dateBtn: {
+  dateInputRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
     borderWidth: 1.5, borderColor: '#E5E7EB',
   },
-  dateBtnText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#1A1A2E' },
+  dateInput: { flex: 1, fontSize: 15, fontWeight: '600', color: '#1A1A2E' },
+  dateHint: { fontSize: 11, color: '#9CA3AF', marginTop: 6, fontStyle: 'italic' },
 
   input: {
     borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 14,

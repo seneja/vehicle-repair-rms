@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -22,8 +22,8 @@ export default function AdminOverviewScreen() {
   const totalWorkshops = workshops?.length ?? 0;
 
   const stats = [
-    { label: 'Platform Users', value: uLoad ? '...' : String(totalUsers),     icon: 'people-outline'   as const, color: '#3B82F6' },
-    { label: 'Workshops',      value: wLoad ? '...' : String(totalWorkshops), icon: 'business-outline' as const, color: theme.colors.brand },
+    { label: 'Platform Users', value: uLoad ? '...' : String(totalUsers),     icon: 'people-outline'   as const, color: '#3B82F6',        trend: '+12%' },
+    { label: 'Workshops',      value: wLoad ? '...' : String(totalWorkshops), icon: 'business-outline' as const, color: theme.colors.brand, trend: '+3%'  },
   ];
 
   return (

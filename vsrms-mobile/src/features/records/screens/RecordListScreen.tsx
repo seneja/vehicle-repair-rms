@@ -4,14 +4,14 @@ import { FlashList } from '@shopify/flash-list';
 import { StyleSheet } from 'react-native-unistyles';
 import { ScreenWrapper } from '@/components/layout/ScreenWrapper';
 import { RecordCard } from '../components/RecordCard';
-import { useRecords } from '../queries/queries';
+import { useVehicleRecords } from '../queries/queries';
 import { ErrorScreen } from '@/components/feedback/ErrorScreen';
 import { VehicleSkeleton } from '@/components/feedback/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ServiceRecord } from '../types/records.types';
 
-export function RecordListScreen() {
-  const { data, isLoading, isError, refetch } = useRecords();
+export function RecordListScreen({ vehicleId = '' }: { vehicleId?: string }) {
+  const { data, isLoading, isError, refetch } = useVehicleRecords(vehicleId);
 
   if (isLoading) return <VehicleSkeleton />;
   if (isError) return <ErrorScreen onRetry={refetch} />;

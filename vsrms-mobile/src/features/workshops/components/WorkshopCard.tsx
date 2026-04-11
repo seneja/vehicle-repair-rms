@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { MapPin, Star } from 'lucide-react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useRouter } from 'expo-router';
@@ -10,30 +9,51 @@ export function WorkshopCard({ workshop }: { workshop: Workshop }) {
   const { theme } = useUnistyles();
   const router = useRouter();
 
+  const rating = workshop.averageRating ?? 0;
+  const totalReviews = workshop.totalReviews ?? 0;
+  const primaryService = workshop.servicesOffered?.[0];
+
   return (
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.8}
       onPress={() => router.push(`/tabs/workshops/${workshop._id ?? workshop.id}` as any)}
     >
+      {/* ICON + INFO */}
       <View style={styles.topRow}>
+        <View style={styles.iconBox}>
+          <Ionicons name="business-outline" size={22} color={theme.colors.brand} />
+        </View>
         <View style={styles.mainInfo}>
           <Text style={styles.name} numberOfLines={1}>{workshop.name}</Text>
-          <Text style={styles.address} numberOfLines={1}>{workshop.district}, Colombo</Text>
+          <View style={styles.locationRow}>
+            <Ionicons name="location-outline" size={13} color={theme.colors.muted} />
+            <Text style={styles.address} numberOfLines={1}>{workshop.district}</Text>
+          </View>
         </View>
         <View style={styles.ratingBox}>
-          <Ionicons name="star" size={14} color="#F56E0F" />
-          <Text style={styles.ratingText}>{workshop.averageRating?.toFixed(1) || '4.8'}</Text>
+          <Ionicons name="star" size={13} color="#F59E0B" />
+          <Text style={styles.ratingText}>{rating > 0 ? rating.toFixed(1) : '—'}</Text>
         </View>
       </View>
 
-      <View style={styles.divider} />
-
+      {/* FOOTER */}
       <View style={styles.footerRow}>
-        <View style={styles.serviceTag}>
-          <Text style={styles.serviceText}>{workshop.servicesOffered?.[0] || 'Full Service'}</Text>
+        {primaryService ? (
+          <View style={styles.serviceTag}>
+            <Text style={styles.serviceText} numberOfLines={1}>{primaryService}</Text>
+          </View>
+        ) : (
+          <View style={styles.serviceTag}>
+            <Text style={styles.serviceText}>General Service</Text>
+          </View>
+        )}
+        {totalReviews > 0 && (
+          <Text style={styles.reviewCount}>{totalReviews} review{totalReviews !== 1 ? 's' : ''}</Text>
+        )}
+        <View style={styles.arrowBox}>
+          <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
         </View>
-        <Text style={styles.distanceText}>1.2 km</Text>
       </View>
     </TouchableOpacity>
   );
@@ -41,51 +61,73 @@ export function WorkshopCard({ workshop }: { workshop: Workshop }) {
 
 const styles = StyleSheet.create((theme) => ({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radii.xl,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1.5,
-    borderColor: '#F3F4F6',
-    boxShadow: [{
-      offsetX: 0,
-      offsetY: 4,
-      blurRadius: 10,
-      color: 'rgba(0,0,0,0.03)',
-    }],
-    elevation: 2
+    borderColor: theme.colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16
+    alignItems: 'center',
+    marginBottom: 14,
+    gap: 12,
   },
-  mainInfo: { flex: 1, marginRight: 12 },
-  name: { fontSize: 18, fontWeight: '900', color: '#1A1A2E' },
-  address: { fontSize: 13, color: '#9CA3AF', fontWeight: '600', marginTop: 4 },
+  iconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: theme.radii.md,
+    backgroundColor: theme.colors.brandSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mainInfo: { flex: 1 },
+  name: { fontSize: 16, fontWeight: '800', color: theme.colors.text, marginBottom: 3 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  address: { fontSize: 13, color: theme.colors.muted, fontWeight: '500', flex: 1 },
+
   ratingBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FFF7ED',
+    gap: 3,
+    backgroundColor: '#FFFBEB',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8
+    borderRadius: theme.radii.md,
   },
-  ratingText: { fontSize: 12, fontWeight: '800', color: '#F56E0F' },
-  divider: { height: 1.5, backgroundColor: '#F9FAFB', marginBottom: 16 },
+  ratingText: { fontSize: 12, fontWeight: '800', color: '#D97706' },
+
   footerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
   },
   serviceTag: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: theme.radii.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  serviceText: { fontSize: 11, fontWeight: '700', color: '#9CA3AF' },
-  distanceText: { fontSize: 13, fontWeight: '800', color: '#1A1A2E' }
+  serviceText: { fontSize: 11, fontWeight: '700', color: theme.colors.muted },
+  reviewCount: { fontSize: 11, color: theme.colors.muted, fontWeight: '500' },
+  arrowBox: {
+    width: 28,
+    height: 28,
+    borderRadius: theme.radii.md,
+    backgroundColor: theme.colors.brandSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 }));

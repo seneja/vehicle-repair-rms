@@ -14,6 +14,7 @@ export function useWorkshopReviews(workshopId: string, params?: Record<string, a
   return useQuery({
     queryKey: [...reviewKeys.workshop(workshopId), params],
     queryFn:  () => fetchWorkshopReviews(workshopId, params),
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
+    enabled:  !!workshopId,
   });
 }

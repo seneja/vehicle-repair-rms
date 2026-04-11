@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { FileText, ChevronRight } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { ServiceRecord } from '../types/records.types';
 
@@ -9,29 +9,85 @@ export function RecordCard({ record }: { record: ServiceRecord }) {
 
   return (
     <View style={styles.card}>
-      <View style={styles.cardRow}>
+      {/* Header row */}
+      <View style={styles.headerRow}>
         <View style={styles.iconBox}>
-          <FileText size={24} color={theme.colors.brand} />
+          <Ionicons name="document-text-outline" size={22} color={theme.colors.brand} />
         </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle}>{record.description}</Text>
-          <Text style={styles.cardSubtitle}>{new Date(record.serviceDate).toLocaleDateString()}</Text>
-          {record.cost !== undefined && (
-            <Text style={styles.cost}>${record.cost.toFixed(2)}</Text>
-          )}
+        <View style={styles.headerInfo}>
+          <Text style={styles.serviceDate}>
+            {new Date(record.serviceDate).toLocaleDateString('en-LK', {
+              day: 'numeric', month: 'short', year: 'numeric',
+            })}
+          </Text>
+          {record.technicianName ? (
+            <Text style={styles.techName}>{record.technicianName}</Text>
+          ) : null}
         </View>
-        <ChevronRight size={20} color={theme.colors.muted} />
+        <View style={styles.costBox}>
+          <Text style={styles.cost}>LKR {record.totalCost.toLocaleString()}</Text>
+        </View>
       </View>
+
+      {/* Work done */}
+      <Text style={styles.workDone} numberOfLines={2}>{record.workDone}</Text>
+
+      {/* Parts replaced */}
+      {record.partsReplaced && record.partsReplaced.length > 0 ? (
+        <View style={styles.partsRow}>
+          <Ionicons name="construct-outline" size={12} color={theme.colors.muted} />
+          <Text style={styles.partsText} numberOfLines={1}>
+            {record.partsReplaced.join(' · ')}
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Mileage */}
+      {record.mileageAtService ? (
+        <View style={styles.mileageRow}>
+          <Ionicons name="speedometer-outline" size={12} color={theme.colors.muted} />
+          <Text style={styles.mileageText}>{record.mileageAtService.toLocaleString()} km</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  card: { backgroundColor: theme.colors.surface, borderRadius: theme.radii.lg, padding: theme.spacing.sm, borderWidth: 1, borderColor: theme.colors.border, marginBottom: theme.spacing.sm },
-  cardRow: { flexDirection: 'row', alignItems: 'center' },
-  iconBox: { width: 48, height: 48, borderRadius: theme.radii.sm, backgroundColor: theme.colors.brandSoft, alignItems: 'center', justifyContent: 'center', marginRight: theme.spacing.sm },
-  cardInfo: { flex: 1 },
-  cardTitle: { fontSize: theme.fonts.sizes.md, fontWeight: '700', color: theme.colors.text, marginBottom: 2 },
-  cardSubtitle: { fontSize: theme.fonts.sizes.sm, color: theme.colors.muted, fontWeight: '500', marginBottom: 4 },
-  cost: { fontSize: theme.fonts.sizes.xs, fontWeight: '700', color: theme.colors.success },
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radii.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.brand,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
+  iconBox: {
+    width: 40, height: 40, borderRadius: 10,
+    backgroundColor: theme.colors.brandSoft,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  headerInfo: { flex: 1 },
+  serviceDate: { fontSize: 13, fontWeight: '700', color: theme.colors.text },
+  techName: { fontSize: 11, color: theme.colors.muted, fontWeight: '500', marginTop: 2 },
+  costBox: {
+    backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
+  },
+  cost: { fontSize: 12, fontWeight: '800', color: '#059669' },
+
+  workDone: { fontSize: 14, fontWeight: '600', color: theme.colors.text, lineHeight: 20, marginBottom: 8 },
+
+  partsRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
+  partsText: { flex: 1, fontSize: 12, color: theme.colors.muted, fontWeight: '500' },
+
+  mileageRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  mileageText: { fontSize: 12, color: theme.colors.muted, fontWeight: '500' },
 }));
