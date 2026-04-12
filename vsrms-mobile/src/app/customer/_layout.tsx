@@ -16,7 +16,7 @@ const ICONS = {
 const LABELS = {
   index: 'Home',
   workshops: 'Garages',
-  vehicles: 'Garage',
+  vehicles: 'Vehicles',
   schedule: 'Schedule',
 };
 

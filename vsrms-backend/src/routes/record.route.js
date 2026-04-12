@@ -16,12 +16,15 @@ const {
   createRecord,
   updateRecord,
   deleteRecord,
+  getWorkshopRecords,
 } = require('../controllers/record.controller');
 
 // All record routes require authentication
 router.use(protect);
 
-router.get('/vehicle/:vehicleId', getRecordsByVehicle);
+// CRITICAL: specific routes MUST be registered before /:id
+router.get('/vehicle/:vehicleId',   getRecordsByVehicle);
+router.get('/workshop/:workshopId', requireRole('workshop_owner', 'workshop_staff', 'admin'), getWorkshopRecords);
 router.post('/',     requireRole('workshop_staff', 'workshop_owner', 'admin'), validateCreateRecord, createRecord);
 router.get('/:id',   getRecord);
 router.put('/:id',   requireRole('workshop_staff', 'workshop_owner', 'admin'), validateUpdateRecord, updateRecord);

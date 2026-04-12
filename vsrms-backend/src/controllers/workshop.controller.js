@@ -102,7 +102,7 @@ const getWorkshopById = async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const createWorkshop = async (req, res, next) => {
   try {
-    const { name, location, address, district, servicesOffered, contactNumber } = req.body;
+    const { name, location, address, district, servicesOffered, contactNumber, description } = req.body;
     const workshop = await Workshop.create({
       name,
       location: { type: 'Point', coordinates: location.coordinates },
@@ -110,6 +110,7 @@ const createWorkshop = async (req, res, next) => {
       district,
       servicesOffered: servicesOffered || [],
       contactNumber,
+      ...(description && { description }),
     });
     res.status(201).json({ workshop });
   } catch (err) {
@@ -125,7 +126,7 @@ const updateWorkshop = async (req, res, next) => {
     const workshop = await Workshop.findById(req.params.id);
     if (!workshop) throw new AppError('Workshop not found', 404);
 
-    const allowed = ['name', 'address', 'district', 'contactNumber', 'servicesOffered', 'location'];
+    const allowed = ['name', 'address', 'district', 'contactNumber', 'servicesOffered', 'location', 'description'];
     allowed.forEach((key) => { if (req.body[key] !== undefined) workshop[key] = req.body[key]; });
 
     await workshop.save();

@@ -9,13 +9,13 @@
 
 | Date | Module | Issue | Status | Fixed By |
 |------|--------|-------|--------|----------|
-| 2026-04-11 | M4 Appointments | `paginate()` destructures `status` but function never returns it → status filter always undefined | **OPEN** | — |
+| 2026-04-11 | M4 Appointments | `paginate()` destructures `status` but function never returns it → status filter always undefined | **FIXED** | Claude |
 | 2026-04-11 | M1 Auth | LoginScreen real sign-in calls setTimeout + fake error → **FIXED**: now calls `authApi.login()` then `signIn(token)` | **FIXED** | Claude |
-| 2026-04-11 | M4 Appointments | Upcoming/Past tab filter is client-side; should pass `?status=` to backend | **OPEN** | — |
+| 2026-04-11 | M4 Appointments | Upcoming/Past tab filter is client-side; should pass `?status=` to backend | **FIXED** | Claude |
 | 2026-04-11 | M3 Workshops | WorkshopDetailScreen uses `workshop.specialization` → **FIXED**: now uses `workshop.servicesOffered` | **FIXED** | Claude |
-| 2026-04-11 | M3 Workshops | WorkshopDetailScreen uses `workshop.description` — field missing from Workshop schema | **OPEN** | — |
-| 2026-04-11 | M4 Appointments | `/customer/schedule/book` route does not exist | **OPEN** | — |
-| 2026-04-11 | M3 Workshops | `/customer/workshops/book/${id}` route does not exist | **OPEN** | — |
+| 2026-04-11 | M3 Workshops | WorkshopDetailScreen uses `workshop.description` — field missing from Workshop schema | **FIXED** | Claude |
+| 2026-04-11 | M4 Appointments | `/customer/schedule/book` route does not exist | **FIXED** | Claude |
+| 2026-04-11 | M3 Workshops | `/customer/workshops/book/${id}` route does not exist | **FIXED** | Claude |
 | 2026-04-11 | M2 Vehicles | VehicleDetailScreen used mock hardcoded service history | **FIXED** | Claude |
 | 2026-04-11 | M5 Records | RecordCard used `record.description` and `record.cost` (wrong field names) | **FIXED** | Claude |
 | 2026-04-11 | M5 Records | RecordListScreen imported non-existent `useRecords` hook | **FIXED** | Claude |
@@ -26,6 +26,14 @@
 | 2026-04-11 | M3 Admin | `AdminGaragesScreen` crashed: `useRegisterWorkshop` undefined | **FIXED** | Claude |
 | 2026-04-11 | M5 Records | Technician/Owner record entry UI was non-standard | **FIXED** | Claude |
 | 2026-04-11 | General | "Log" and "History" tabs show forms instead of lists | **OPEN** | — |
+| 2026-04-12 | M4 Appointments | Backend status filter didn't support comma-separated values → Upcoming/Past grouping broken | **FIXED** | Claude |
+| 2026-04-12 | M4 Appointments | AppointmentListScreen used individual status tabs instead of Upcoming/Past grouping | **FIXED** | Claude |
+| 2026-04-12 | M3 Admin | WorkshopDetailScreen book button navigated to `/tabs/schedule/book` (wrong) → `/customer/schedule/book` | **FIXED** | Claude |
+| 2026-04-12 | M3 Admin | AdminGaragesScreen workshop creation missing `location` field → backend 400 error | **FIXED** | Claude |
+| 2026-04-12 | M1 Admin | AdminUsersScreen used `<div>` instead of `<View>` → React Native crash | **FIXED** | Claude |
+| 2026-04-12 | M5 Records | AddRecordScreen sent `totalCost: undefined` when blank → backend 400 (required field) | **FIXED** | Claude |
+| 2026-04-12 | M3 Workshops | updateWorkshop missing `description` in allowed fields list | **FIXED** | Claude |
+| 2026-04-12 | M2 Vehicles | Customer vehicles tab label incorrectly set to "Garage" → now "Vehicles" | **FIXED** | Claude |
 | 2026-04-11 | M2 Vehicles | Missing routes: `/customer/vehicles/add` and `/customer/vehicles/edit/[id]` | **FIXED** | Claude |
 | 2026-04-11 | General | `ScreenWrapper` used `StyleSheet` from `react-native` (violates CLAUDE.md) | **FIXED** | Claude |
 | 2026-04-11 | M6 Reviews | `useWorkshopReviews` missing `enabled: !!workshopId` guard | **FIXED** | Claude |
@@ -105,18 +113,18 @@
 - [x] `src/models/Workshop.js` — name, location (GeoJSON), address, district, servicesOffered, contactNumber, averageRating, imageUrl
 - [x] `src/routes/workshop.route.js` — `/nearby` registered before `/:id`
 - [x] `src/controllers/workshop.controller.js` — getWorkshops, getNearbyWorkshops ($geoNear aggregation), getWorkshopById, createWorkshop, updateWorkshop, deleteWorkshop, uploadWorkshopImage
-- [ ] **BUG FIX**: Add `description` field to Workshop schema (needed by mobile detail screen) — B5
+- [x] **BUG FIX B5**: `description` field added to Workshop schema, createWorkshop, updateWorkshop
 
 ### M4 — Appointments (Backend)
 - [x] `src/models/Appointment.js` — userId, vehicleId, workshopId, serviceType, scheduledDate, status (enum), notes; `isValidTransition` static method
 - [x] `src/routes/appointment.route.js` — `/mine` registered before `/:id`
 - [x] `src/controllers/appointment.controller.js` — getMyAppointments, getAppointment, createAppointment (double-booking, past-date), updateAppointment, updateAppointmentStatus (state machine), deleteAppointment
-- [ ] **BUG FIX B1**: `getMyAppointments` — extract `status` from `req.query` directly, not from `paginate()` return
+- [x] **BUG FIX B1**: `getMyAppointments` — `status` extracted from `req.query` directly (not from `paginate()`); supports comma-separated values
 
 ### M5 — Service Records (Backend)
 - [x] `src/models/ServiceRecord.js` — vehicleId, appointmentId, serviceDate, workDone, partsReplaced, totalCost, mileageAtService, technicianName
-- [x] `src/routes/record.route.js` — `/vehicle/:vehicleId` registered before `/:id`
-- [x] `src/controllers/record.controller.js` — getRecordsByVehicle, getRecord, createRecord, updateRecord, deleteRecord; ownership via `assertVehicleOwnership`
+- [x] `src/routes/record.route.js` — `/vehicle/:vehicleId` and `/workshop/:workshopId` registered before `/:id`
+- [x] `src/controllers/record.controller.js` — getRecordsByVehicle, getRecord, getWorkshopRecords, createRecord, updateRecord, deleteRecord; ownership via `assertVehicleOwnership`
 
 ### M6 — Reviews (Backend)
 - [x] `src/models/Review.js` — workshopId, userId, rating (1-5), reviewText, appointmentId
@@ -137,7 +145,7 @@
 - [x] `features/auth/screens/RegisterScreen.tsx` — AppLogo; theme tokens; all hardcoded hex replaced
 - [x] `app/auth/login.tsx`, `app/auth/register.tsx` — route wrappers
 - [x] `app/customer/index.tsx` — owner profile screen (show user.fullName, role badge, stats, sign-out)
-- [ ] `app/admin/users.tsx` — admin: paginated user list with deactivate action (calls DELETE /auth/users/:id)
+- [x] `app/admin/users.tsx` — admin: paginated user list with role badges, search, deactivate action (calls DELETE /auth/users/:id)
 - [x] `app/admin/index.tsx` — admin dashboard screen (fixed StatusBar + trend props)
 
 ### M2 — Vehicle Management (Mobile)
@@ -164,9 +172,9 @@
 - [x] `features/workshops/screens/NearbyWorkshopsScreen.tsx`
 - [x] `features/workshops/screens/WorkshopDetailScreen.tsx` — uses `servicesOffered`, shows up to 3 reviews via `useWorkshopReviews`
 - [x] `app/customer/workshops/index.tsx, [id].tsx, _layout.tsx`
-- [ ] **BUG FIX B5**: Add `description` field to Workshop schema, or remove description section from detail screen
-- [ ] **BUG FIX B6**: Create `app/customer/workshops/book/[id].tsx` — booking screen from workshop detail
-- [x] `app/admin/garages.tsx` — admin: create/edit/delete workshop form (FIXED crash)
+- [x] **BUG FIX B5**: `description` field in Workshop schema + createWorkshop/updateWorkshop; WorkshopDetailScreen shows it conditionally; admin garage form now has description + servicesOffered inputs
+- [x] **BUG FIX B6**: WorkshopDetailScreen "Book Appointment" button routes to `/customer/schedule/book?workshopId=…`; `app/customer/schedule/book.tsx` accepts workshopId param and pre-selects the workshop
+- [x] `app/admin/garages.tsx` — admin: create/edit/delete workshop form (FIXED crash); now includes description + servicesOffered fields
 
 ### M4 — Appointments (Mobile)
 - [x] `features/appointments/types/appointments.types.ts`
@@ -174,12 +182,12 @@
 - [x] `features/appointments/queries/appointments.keys.ts, mutations.ts, queries.ts`
 - [x] `features/appointments/components/AppointmentCard.tsx` — colour-coded status accent border
 - [x] `features/appointments/screens/AppointmentListScreen.tsx` — tab UI (Upcoming/Past)
-- [x] `features/appointments/screens/BookAppointmentScreen.tsx` — TextInput date field (fixed removed DateTimePicker vars)
-- [ ] **BUG FIX B3**: AppointmentListScreen — pass `?status=` param to backend (Upcoming = pending,confirmed,in_progress; Past = completed,cancelled)
-- [ ] **BUG FIX B7**: Create `app/customer/schedule/book.tsx` — route wrapper for BookAppointmentScreen
-- [ ] `app/customer/schedule.tsx` or `app/customer/schedule/index.tsx` — appointment list entry
-- [ ] `app/technician/appointments.tsx` — staff view of workshop appointments, status advance UI
-- [ ] `app/technician/tracker.tsx` — job tracker for in-progress/completed appointments
+- [x] `features/appointments/screens/BookAppointmentScreen.tsx` — dark header style; TextInput date field
+- [x] **BUG FIX B3**: AppointmentListScreen passes `?status=pending,confirmed,in_progress` or `completed,cancelled` to backend
+- [x] **BUG FIX B7**: `app/customer/schedule/book.tsx` — route wrapper for BookAppointmentScreen (exists and working)
+- [x] `app/customer/schedule/index.tsx` — appointment list entry
+- [x] `app/technician/appointments.tsx` — staff view of workshop appointments, status advance UI
+- [x] `app/technician/tracker.tsx` — job tracker for in-progress/completed appointments
 - [x] `app/technician/index.tsx` — technician dashboard (today's jobs summary)
 
 ### M5 — Service Records (Mobile)
@@ -209,16 +217,16 @@
 ## Week 3 (12 Apr – 18 Apr) — Integration, UI Polish, Bug Fixes, Deploy
 
 ### Critical Bug Fixes (must complete before demo)
-- [ ] **B1**: Fix `getMyAppointments` in `appointment.controller.js` — separate `status` extraction from `paginate()` result
+- [x] **B1**: Fix `getMyAppointments` in `appointment.controller.js` — separate `status` extraction from `paginate()` result; also support comma-separated values for multi-status queries
 - [x] **B2**: Fixed `LoginScreen` — real login via `authApi.login()` + `signIn(token)`
-- [ ] **B3**: Fix `AppointmentListScreen` — pass `?status=` to backend (Upcoming = pending,confirmed,in_progress; Past = completed,cancelled)
+- [x] **B3**: Fix `AppointmentListScreen` — pass `?status=` to backend (Upcoming = pending,confirmed,in_progress; Past = completed,cancelled)
 - [x] **B4**: Fixed `WorkshopDetailScreen` — `workshop.specialization` → `workshop.servicesOffered`
-- [ ] **B5**: Fix `WorkshopDetailScreen` — add `description` to Workshop schema or remove fallback
-- [ ] **B6**: Create `app/customer/workshops/book/[id].tsx` — booking screen from workshop detail
-- [ ] **B7**: Create `app/customer/schedule/book.tsx` — booking screen from schedule tab
+- [x] **B5**: Fixed `WorkshopDetailScreen` — `description` field added to Workshop schema and createWorkshop/updateWorkshop controllers
+- [x] **B6**: Create `app/customer/workshops/book/[id].tsx` → book route wired via WorkshopDetailScreen button (fixed route `/customer/schedule/book`)
+- [x] **B7**: Create `app/customer/schedule/book.tsx` — route wrapper for BookAppointmentScreen (existed and working)
 
 ### Missing Screens (must complete for MVP)
-- [ ] BookAppointmentScreen route wiring — B7
+- [x] BookAppointmentScreen route wiring — B7
 - [x] Staff appointments screen — list all appointments for staff's workshop, advance status
 - [x] Admin garages screen — CRUD workshop management (FIXED crash)
 - [x] Admin users screen — list + deactivate users

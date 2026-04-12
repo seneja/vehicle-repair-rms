@@ -33,3 +33,21 @@ export const listUsers = async (params?: Record<string, any>): Promise<{ data: U
 export const deactivateUser = async (id: string): Promise<void> => {
   await client.delete(`/auth/users/${id}`);
 };
+
+export interface RegisterStaffPayload {
+  firstName: string;
+  lastName:  string;
+  email:     string;
+  phone?:    string;
+  password:  string;
+}
+
+export const registerStaff = async (payload: RegisterStaffPayload): Promise<User> => {
+  const { data } = await client.post('/auth/staff', payload);
+  return data.user || data;
+};
+
+export const getWorkshopStaff = async (params?: Record<string, any>): Promise<{ data: User[]; total: number }> => {
+  const { data } = await client.get('/auth/staff', { params });
+  return data;
+};

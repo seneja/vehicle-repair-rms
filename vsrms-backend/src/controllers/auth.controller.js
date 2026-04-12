@@ -219,4 +219,100 @@ const deactivateUser = async (req, res, next) => {
   }
 };
 
-module.exports = { login, register, syncProfile, getMe, updateMe, listUsers, deactivateUser };
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/v1/auth/staff  — workshop_owner only; registers a technician
+// Creates Asgardeo account + MongoDB user linked to caller's workshopId
+// ─────────────────────────────────────────────────────────────────────────────
+const registerStaff = async (req, res, next) => {
+  try {
+    const owner = req.user;
+    if (!owner.workshopId) {
+      throw new AppError('Your account is not linked to a workshop', 400);
+    }
+
+    const { firstName, lastName, email, phone, password } = req.body;
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ error: 'firstName, lastName, email, and password are required' });
+    }
+
+    // Client-credentials token for SCIM2 management
+    const ccParams = new URLSearchParams();
+    ccParams.append('grant_type',    'client_credentials');
+    ccParams.append('scope',         'internal_user_mgt_create');
+    ccParams.append('client_id',     process.env.ASGARDEO_CLIENT_ID);
+    ccParams.append('client_secret', process.env.ASGARDEO_CLIENT_SECRET);
+    const ccRes = await axios.post(
+      `${ASGARDEO_BASE}/oauth2/token`,
+      ccParams.toString(),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+    );
+    const mgmtToken = ccRes.data.access_token;
+
+    const scimUser = {
+      schemas:  ['urn:ietf:params:scim:schemas:core:2.0:User'],
+      userName: email,
+      password,
+      name:     { givenName: firstName, familyName: lastName },
+      emails:   [{ primary: true, value: email }],
+      ...(phone && { phoneNumbers: [{ type: 'mobile', value: phone }] }),
+      'urn:scim:wso2:schema': { appRole: 'workshop_staff' },
+    };
+
+    const scimRes = await axios.post(`${ASGARDEO_BASE}/scim2/Users`, scimUser, {
+      headers: { Authorization: `Bearer ${mgmtToken}`, 'Content-Type': 'application/scim+json' },
+    });
+
+    const asgardeoSub = scimRes.data?.id ?? email;
+
+    // Upsert in MongoDB so the staff member is immediately usable
+    const staffUser = await User.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      {
+        $setOnInsert: {
+          asgardeoSub,
+          email:      email.toLowerCase(),
+          fullName:   `${firstName} ${lastName}`.trim(),
+          role:       'workshop_staff',
+          workshopId: owner.workshopId,
+          active:     true,
+          ...(phone && { phone }),
+        },
+      },
+      { upsert: true, new: true },
+    );
+
+    return res.status(201).json({ message: 'Technician registered successfully', user: staffUser });
+  } catch (err) {
+    const asgardeoErr = err?.response?.data;
+    console.error('[auth/staff] Asgardeo error:', asgardeoErr ?? err.message);
+    let message = 'Registration failed';
+    const detail = asgardeoErr?.detail ?? asgardeoErr?.message ?? '';
+    if (detail.toLowerCase().includes('already exists') || err?.response?.status === 409) {
+      message = 'An account with this email already exists';
+    }
+    return res.status(err?.response?.status ?? 500).json({ error: message });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/v1/auth/staff  — workshop_owner: list their own staff
+// ─────────────────────────────────────────────────────────────────────────────
+const getWorkshopStaff = async (req, res, next) => {
+  try {
+    const owner = req.user;
+    if (!owner.workshopId) {
+      return res.json({ data: [], total: 0 });
+    }
+    const { page, limit, skip } = paginate(req.query);
+    const filter = { role: 'workshop_staff', workshopId: owner.workshopId };
+    const [data, total] = await Promise.all([
+      User.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+      User.countDocuments(filter),
+    ]);
+    res.json({ data, page, limit, total, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { login, register, syncProfile, getMe, updateMe, listUsers, deactivateUser, registerStaff, getWorkshopStaff };

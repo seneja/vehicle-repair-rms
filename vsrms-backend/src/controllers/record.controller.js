@@ -2,6 +2,7 @@
 
 const ServiceRecord = require('../models/ServiceRecord');
 const Vehicle       = require('../models/Vehicle');
+const Appointment   = require('../models/Appointment');
 const { AppError }  = require('../middleware/errorHandler');
 
 // ── Pagination helper ─────────────────────────────────────────────────────────
@@ -118,4 +119,38 @@ const deleteRecord = async (req, res, next) => {
   }
 };
 
-module.exports = { getRecordsByVehicle, getRecord, createRecord, updateRecord, deleteRecord };
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/v1/records/workshop/:workshopId — owner/staff/admin: all records for a workshop
+// ─────────────────────────────────────────────────────────────────────────────
+const getWorkshopRecords = async (req, res, next) => {
+  try {
+    const { workshopId } = req.params;
+    const role = req.user.role;
+
+    // Workshop owners can only see their own workshop's records
+    if (role === 'workshop_owner' && req.user.workshopId?.toString() !== workshopId) {
+      throw new AppError('Forbidden — this is not your workshop', 403);
+    }
+
+    const { page, limit, skip } = paginate(req.query);
+
+    // Find all appointment IDs for this workshop
+    const appointments = await Appointment.find({ workshopId }).select('_id');
+    const appointmentIds = appointments.map(a => a._id);
+
+    const filter = { appointmentId: { $in: appointmentIds } };
+    const [data, total] = await Promise.all([
+      ServiceRecord.find(filter)
+        .populate('vehicleId', 'make model registrationNo vehicleType')
+        .populate('appointmentId', 'serviceType scheduledDate status')
+        .skip(skip).limit(limit).sort({ serviceDate: -1 }),
+      ServiceRecord.countDocuments(filter),
+    ]);
+
+    res.json({ data, page, limit, total, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getRecordsByVehicle, getRecord, createRecord, updateRecord, deleteRecord, getWorkshopRecords };

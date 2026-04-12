@@ -24,11 +24,15 @@ export function AddRecordScreen() {
       Alert.alert('Validation', 'Work description and date are required');
       return;
     }
+    if (form.totalCost && isNaN(parseFloat(form.totalCost))) {
+      Alert.alert('Validation', 'Total cost must be a valid number');
+      return;
+    }
 
     create({
       vehicleId: vehicleId!,
       workDone: form.workDone,
-      totalCost: form.totalCost ? parseFloat(form.totalCost) : undefined,
+      totalCost: form.totalCost ? parseFloat(form.totalCost) : 0,
       serviceDate: form.serviceDate,
     }, {
       onSuccess: () => router.back(),

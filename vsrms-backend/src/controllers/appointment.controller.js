@@ -20,7 +20,10 @@ const getMyAppointments = async (req, res, next) => {
     const { page, limit, skip } = paginate(req.query);
     const { status } = req.query;          // paginate() does not return status
     const filter = { userId: req.user._id };
-    if (status) filter.status = status;
+    if (status) {
+      const statuses = String(status).split(',').map(s => s.trim()).filter(Boolean);
+      filter.status = statuses.length === 1 ? statuses[0] : { $in: statuses };
+    }
 
     const [data, total] = await Promise.all([
       Appointment.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
@@ -179,7 +182,10 @@ const getWorkshopAppointments = async (req, res, next) => {
     const { page, limit, skip } = paginate(req.query);
     const { status } = req.query;
     const filter = { workshopId: req.params.workshopId };
-    if (status) filter.status = status;
+    if (status) {
+      const statuses = String(status).split(',').map(s => s.trim()).filter(Boolean);
+      filter.status = statuses.length === 1 ? statuses[0] : { $in: statuses };
+    }
 
     const [data, total] = await Promise.all([
       Appointment.find(filter).populate('userId', 'fullName email').populate('vehicleId', 'registrationNo make model').skip(skip).limit(limit).sort({ scheduledDate: -1 }),

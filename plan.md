@@ -27,7 +27,7 @@ All 6 controllers and routes are implemented. Core middleware is in place.
 | controllers/auth.controller.js | ✓ Done | ROPC proxy, SCIM2 register, sync-profile with upsert |
 | controllers/vehicle.controller.js | ✓ Done | Full CRUD + image upload + soft delete |
 | controllers/workshop.controller.js | ✓ Done | Full CRUD + nearby ($geoNear) + image upload |
-| controllers/appointment.controller.js | ✓ Done | Fixed status filter extraction bug (B1) |
+| controllers/appointment.controller.js | ✓ Done | Fixed status filter extraction bug (B1); supports comma-separated status values |
 | controllers/record.controller.js | ✓ Done | Ownership enforcement |
 | controllers/review.controller.js | ✓ Done | recalculateRating called correctly |
 | utils/reviewHelper.js, geoHelper.js | ✓ Done | |
@@ -52,7 +52,7 @@ Dashboards standardized to premium Dark Header/White Card theme.
 | features/workshops/screens/WorkshopDetailScreen | ✓ Done | Fixed specialization/description (B4, B5) |
 | features/workshops/screens/WorkshopListScreen | ✓ Done | |
 | features/workshops/screens/NearbyWorkshopsScreen | ✓ Done | |
-| features/appointments/screens/AppointmentListScreen | ✓ Done | Fixed client-side filter (B3) |
+| features/appointments/screens/AppointmentListScreen | ✓ Done | Upcoming/Past tabs pass comma-separated status to backend (B3) |
 | features/records/screens/* | ✓ Done | List, Detail, Add |
 | features/reviews/screens/ReviewListScreen | ✓ Done | |
 | app/customer/schedule/ | ✓ Done | Book screen route implementation |

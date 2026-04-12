@@ -130,7 +130,7 @@ export function WorkshopDetailScreen({ id: propId }: { id?: string }) {
       <View style={styles.stickyFooter}>
         <TouchableOpacity
           style={styles.bookBtn}
-          onPress={() => router.push(`/tabs/schedule/book?workshopId=${workshop._id ?? workshop.id}` as any)}
+          onPress={() => router.push(`/customer/schedule/book?workshopId=${workshop._id ?? workshop.id}` as any)}
           activeOpacity={0.85}
         >
           <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />

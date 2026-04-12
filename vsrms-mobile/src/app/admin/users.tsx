@@ -51,12 +51,12 @@ function UserCard({ user, onDeactivate }: { user: User; onDeactivate: (id: strin
             <Ionicons name={roleCfg.icon} size={12} color={roleCfg.text} />
             <Text style={[styles.roleLabelText, { color: roleCfg.text }]}>{roleCfg.label}</Text>
          </View>
-         <div style={styles.statusRow}>
+         <View style={styles.statusRow}>
             <View style={[styles.statusDot, { backgroundColor: isActive ? '#10B981' : '#9CA3AF' }]} />
             <Text style={[styles.statusText, { color: isActive ? '#059669' : '#9CA3AF' }]}>
                {isActive ? 'Active' : 'Disabled'}
             </Text>
-         </div>
+         </View>
       </View>
     </View>
   );

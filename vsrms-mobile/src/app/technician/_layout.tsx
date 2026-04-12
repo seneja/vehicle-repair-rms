@@ -13,8 +13,8 @@ const ICONS = {
 const LABELS = {
   index: 'Tasks',
   appointments: 'Appts',
-  tracker: 'Jobs',
-  record: 'History',
+  tracker: 'Tracker',
+  record: 'Log',
 };
 
 export default function StaffLayout() {

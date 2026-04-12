@@ -9,9 +9,15 @@ import { ErrorScreen } from '@/components/feedback/ErrorScreen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Appointment } from '../types/appointments.types';
 
+type TabKey = 'upcoming' | 'past';
+const TAB_STATUS: Record<TabKey, string> = {
+  upcoming: 'pending,confirmed,in_progress',
+  past:     'completed,cancelled',
+};
+
 export function AppointmentListScreen() {
-  const [status, setStatus] = useState<'pending' | 'confirmed' | 'completed' | 'cancelled'>('pending');
-  const { data, isLoading, isError, refetch } = useMyAppointments(status);
+  const [tab, setTab] = useState<TabKey>('upcoming');
+  const { data, isLoading, isError, refetch } = useMyAppointments(TAB_STATUS[tab]);
 
   return (
     <ScreenWrapper bg="#1A1A2E">
@@ -28,16 +34,16 @@ export function AppointmentListScreen() {
 
         {/* Custom Segmented Control */}
         <View style={styles.tabContainer}>
-          {(['pending', 'confirmed', 'completed'] as const).map((s) => (
-            <TouchableOpacity 
-              key={s} 
-              onPress={() => setStatus(s)}
-              style={[styles.tab, status === s && styles.activeTab]}
+          {(['upcoming', 'past'] as const).map((t) => (
+            <TouchableOpacity
+              key={t}
+              onPress={() => setTab(t)}
+              style={[styles.tab, tab === t && styles.activeTab]}
             >
-              <Text style={[styles.tabText, status === s && styles.activeTabText]}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
+              <Text style={[styles.tabText, tab === t && styles.activeTabText]}>
+                {t === 'upcoming' ? 'Upcoming' : 'Past'}
               </Text>
-              {status === s && <View style={styles.activeLine} />}
+              {tab === t && <View style={styles.activeLine} />}
             </TouchableOpacity>
           ))}
         </View>
@@ -64,7 +70,7 @@ export function AppointmentListScreen() {
             refreshing={isLoading}
             keyExtractor={(a: Appointment) => a._id || a.id || Math.random().toString()}
             contentContainerStyle={styles.list}
-            ListEmptyComponent={<EmptyState message={`No ${status} appointments found.`} />}
+            ListEmptyComponent={<EmptyState message={tab === 'upcoming' ? 'No upcoming appointments.' : 'No past appointments.'} />}
           />
         )}
       </View>

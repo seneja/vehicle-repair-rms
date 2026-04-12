@@ -47,18 +47,44 @@ function WorkshopCard({ workshop }: { workshop: Workshop }) {
 
 export default function AdminGaragesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [formData, setFormData] = useState({ name: '', address: '', contactNumber: '', district: 'Colombo' });
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    contactNumber: '',
+    district: 'Colombo',
+    description: '',
+    servicesOffered: '',
+    lat: '6.9271',   // default: Colombo
+    lng: '79.8612',
+  });
   const { data: workshops, isLoading, isError, refetch } = useWorkshops();
   const { mutate: create, isPending } = useCreateWorkshop();
 
   const handleCreate = () => {
-    if (!formData.name || !formData.address) return;
-    create(formData, { 
-      onSuccess: () => {
-        setModalVisible(false);
-        setFormData({ name: '', address: '', contactNumber: '', district: 'Colombo' });
+    if (!formData.name || !formData.address || !formData.contactNumber) return;
+    const lat = parseFloat(formData.lat);
+    const lng = parseFloat(formData.lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    create(
+      {
+        name: formData.name,
+        address: formData.address,
+        contactNumber: formData.contactNumber,
+        district: formData.district,
+        description: formData.description || undefined,
+        servicesOffered: formData.servicesOffered
+          ? formData.servicesOffered.split(',').map(s => s.trim()).filter(Boolean)
+          : [],
+        location: { type: 'Point', coordinates: [lng, lat] }, // GeoJSON: [lng, lat]
+      },
+      {
+        onSuccess: () => {
+          setModalVisible(false);
+          setFormData({ name: '', address: '', contactNumber: '', district: 'Colombo', description: '', servicesOffered: '', lat: '6.9271', lng: '79.8612' });
+        },
       }
-    });
+    );
   };
 
   return (
@@ -128,6 +154,22 @@ export default function AdminGaragesScreen() {
                  <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>District</Text>
                     <TextInput style={styles.input} placeholder="Colombo" value={formData.district} onChangeText={t => setFormData(f => ({...f, district:t}))} />
+                 </View>
+                 <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Description (optional)</Text>
+                    <TextInput style={[styles.input, { height: 80 }]} placeholder="Brief description of the workshop..." multiline textAlignVertical="top" value={formData.description} onChangeText={t => setFormData(f => ({...f, description:t}))} />
+                 </View>
+                 <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Services Offered (comma-separated)</Text>
+                    <TextInput style={styles.input} placeholder="Oil Change, Brake Service, AC Repair" value={formData.servicesOffered} onChangeText={t => setFormData(f => ({...f, servicesOffered:t}))} />
+                 </View>
+                 <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Latitude</Text>
+                    <TextInput style={styles.input} placeholder="e.g. 6.9271" keyboardType="numeric" value={formData.lat} onChangeText={t => setFormData(f => ({...f, lat:t}))} />
+                 </View>
+                 <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Longitude</Text>
+                    <TextInput style={styles.input} placeholder="e.g. 79.8612" keyboardType="numeric" value={formData.lng} onChangeText={t => setFormData(f => ({...f, lng:t}))} />
                  </View>
              </ScrollView>
 
