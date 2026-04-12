@@ -21,7 +21,7 @@ import { AppLogoIcon } from '@/components/ui/AppLogo';
 const { width: SCREEN_W } = Dimensions.get('window');
 
 // ─── Role definitions ─────────────────────────────────────────────────────────
-type RoleLabel = 'Vehicle Owner' | 'Garage Owner' | 'Technician';
+type RoleLabel = 'Vehicle Owner' | 'Garage Owner';
 
 const ROLES: { label: RoleLabel; icon: keyof typeof Ionicons.glyphMap; desc: string }[] = [
   {
@@ -33,11 +33,6 @@ const ROLES: { label: RoleLabel; icon: keyof typeof Ionicons.glyphMap; desc: str
     label: 'Garage Owner',
     icon: 'business-outline',
     desc: 'Manage your workshop & bookings',
-  },
-  {
-    label: 'Technician',
-    icon: 'construct-outline',
-    desc: 'Handle jobs & service records',
   },
 ];
 

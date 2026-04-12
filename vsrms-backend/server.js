@@ -47,8 +47,13 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Strip MongoDB operator injection from req.body / req.query / req.params
-app.use(mongoSanitize());
+// Strip MongoDB operator injection from req.body only.
+// express-mongo-sanitize cannot reassign req.query in Express 5 (read-only getter),
+// so we call mongoSanitize.sanitize() directly on the body object instead.
+app.use((req, _res, next) => {
+  if (req.body) req.body = mongoSanitize.sanitize(req.body);
+  next();
+});
 
 // Apply rate limiter to all /api/v1 routes
 app.use('/api/v1', apiLimiter);

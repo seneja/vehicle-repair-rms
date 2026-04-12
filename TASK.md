@@ -160,7 +160,7 @@
 - [x] `app/customer/vehicles/index.tsx, [id].tsx, _layout.tsx`
 - [x] `app/customer/vehicles/add.tsx` — route wrapper for AddVehicleScreen
 - [x] `app/customer/vehicles/edit/[id].tsx` — route wrapper for EditVehicleScreen
-- [ ] Vehicle image upload UI — pick image with expo-image-picker, POST /vehicles/:id/image
+- [x] Vehicle image upload UI — pick image with expo-image-picker, POST /vehicles/:id/image
 
 ### M3 — Workshop Management (Mobile)
 - [x] `features/workshops/types/workshops.types.ts`

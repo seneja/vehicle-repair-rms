@@ -30,6 +30,8 @@ export default function GarageLayout() {
       <Tabs.Screen name="jobs" />
       <Tabs.Screen name="logs" />
       <Tabs.Screen name="staff" />
+      {/* create-record file still exists as a route — hide it from the tab bar */}
+      <Tabs.Screen name="create-record" options={{ href: null }} />
     </Tabs>
   );
 }

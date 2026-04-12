@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StatusBar, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import * as ImagePicker from 'expo-image-picker';
 
 import { ScreenWrapper } from '@/components/layout/ScreenWrapper';
 import { useVehicle } from '../queries/queries';
+import { useUploadVehicleImage } from '../queries/mutations';
 import { useVehicleRecords } from '@/features/records/queries/queries';
 import { ServiceRecord } from '@/features/records/types/records.types';
 import { ErrorScreen } from '@/components/feedback/ErrorScreen';
@@ -19,13 +21,33 @@ const TYPE_ICON: Record<string, string> = {
 
 export function VehicleDetailScreen({ id }: { id: string }) {
   const router = useRouter();
+  const [uploading, setUploading] = useState(false);
 
   const { data: vehicle, isLoading: vLoading } = useVehicle(id);
   const { data: records, isLoading: rLoading } = useVehicleRecords(id);
-
-  // Loaders and Error displays moved into the mainCard layout to preserve top navigation bar
+  const uploadImage = useUploadVehicleImage();
 
   const iconName = vehicle?.vehicleType ? (TYPE_ICON[vehicle.vehicleType] ?? 'car-outline') : 'car-outline';
+
+  async function handlePickImage() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Allow photo library access to upload a vehicle photo.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    setUploading(true);
+    uploadImage.mutate(
+      { id, uri: result.assets[0].uri },
+      { onSettled: () => setUploading(false) },
+    );
+  }
 
   return (
     <ScreenWrapper bg="#1A1A2E">
@@ -64,10 +86,28 @@ export function VehicleDetailScreen({ id }: { id: string }) {
 
           {/* VEHICLE INFO CARD */}
           <View style={styles.infoCard}>
-            <View style={styles.cardTop}>
-              <View style={styles.iconBox}>
-                <Ionicons name={iconName as any} size={30} color="#1A1A2E" />
+            {/* Vehicle photo banner */}
+            <TouchableOpacity style={styles.photoBanner} onPress={handlePickImage} activeOpacity={0.85}>
+              {vehicle.imageUrl ? (
+                <Image source={{ uri: vehicle.imageUrl }} style={styles.vehicleImage} resizeMode="cover" />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Ionicons name={iconName as any} size={48} color="#D1D5DB" />
+                </View>
+              )}
+              <View style={styles.photoOverlay}>
+                {uploading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Ionicons name="camera-outline" size={16} color="#FFFFFF" />
+                    <Text style={styles.photoOverlayText}>{vehicle.imageUrl ? 'Change photo' : 'Add photo'}</Text>
+                  </>
+                )}
               </View>
+            </TouchableOpacity>
+
+            <View style={styles.cardTop}>
               <View style={styles.infoTextContainer}>
                 <Text style={styles.vehicleName}>{vehicle.make} {vehicle.model}</Text>
                 <Text style={styles.vehicleReg}>{vehicle.registrationNo}</Text>
@@ -184,18 +224,24 @@ const styles = StyleSheet.create((theme) => ({
   mainCard: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 32, borderTopRightRadius: 32, marginTop: -38, flex: 1, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 16 },
   scroll: { padding: 24, paddingBottom: 130 },
 
-  infoCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, borderWidth: 1.5, borderColor: '#F3F4F6', marginBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 10, elevation: 2 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  iconBox: { width: 56, height: 56, borderRadius: 14, backgroundColor: '#FAFAFA', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  infoCard: { backgroundColor: '#FFFFFF', borderRadius: 20, overflow: 'hidden', borderWidth: 1.5, borderColor: '#F3F4F6', marginBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 10, elevation: 2 },
+
+  photoBanner: { width: '100%', height: 160, position: 'relative' },
+  vehicleImage: { width: '100%', height: '100%' },
+  photoPlaceholder: { width: '100%', height: '100%', backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  photoOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.45)', paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  photoOverlayText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
+
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 20, paddingBottom: 0 },
   infoTextContainer: { flex: 1 },
   vehicleName: { fontSize: 20, fontWeight: '900', color: '#1A1A2E', letterSpacing: -0.5 },
   vehicleReg: { fontSize: 13, color: '#6B7280', fontWeight: '700', marginTop: 2, letterSpacing: 0.5 },
   typeBadge: { backgroundColor: '#FFF7ED', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
   typeBadgeText: { fontSize: 10, fontWeight: '900', color: '#C2410C' },
 
-  divider: { height: 1.5, backgroundColor: '#F3F4F6', marginVertical: 18 },
+  divider: { height: 1.5, backgroundColor: '#F3F4F6', marginVertical: 18, marginHorizontal: 20 },
 
-  metaGrid: { flexDirection: 'row' },
+  metaGrid: { flexDirection: 'row', paddingHorizontal: 20, paddingBottom: 20 },
   metaCell: { flex: 1, paddingHorizontal: 4, alignItems: 'center' },
   metaCellBorder: { borderLeftWidth: 1.5, borderRightWidth: 1.5, borderColor: '#F3F4F6' },
   metaLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, textAlign: 'center' },
