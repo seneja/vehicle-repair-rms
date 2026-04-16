@@ -58,6 +58,26 @@ const login = async (req, res, next) => {
   } catch (err) {
     const asgardeoErr = err?.response?.data;
     console.error('[auth/login] Asgardeo error:', asgardeoErr ?? err.message);
+    // ⚠️ DEVELOPMENT BYPASS: Allow login for mock staff if Asgardeo fails
+    if (process.env.NODE_ENV !== 'production' && (asgardeoErr?.error === 'invalid_grant' || asgardeoErr?.error === 'invalid_client' || err.code === 'ENOTFOUND')) {
+      // Need to include password in selection since it's hidden by default
+      const dbUser = await User.findOne({ email: req.body.email.toLowerCase() }).select('+password');
+      
+      if (dbUser && dbUser.asgardeoSub.startsWith('mock-staff-')) {
+        // Verify the password set during creation
+        if (!dbUser.comparePassword(req.body.password)) {
+          return res.status(401).json({ error: 'Incorrect email or password (Development Mode)' });
+        }
+
+        console.log(`[DEBUG] Logging in mock staff: ${dbUser.email}`);
+        return res.status(200).json({
+          access_token: dbUser.asgardeoSub,
+          expires_in: 3600,
+          user: { email: dbUser.email, sub: dbUser.asgardeoSub, given_name: dbUser.fullName.split(' ')[0] },
+        });
+      }
+    }
+
     let message = 'Authentication failed';
     if (asgardeoErr?.error === 'invalid_grant')  message = 'Incorrect email or password';
     if (asgardeoErr?.error === 'invalid_client') message = 'Server configuration error';
@@ -253,14 +273,22 @@ const registerStaff = async (req, res, next) => {
 
     // Verify the owner actually owns that workshop
     const workshop = await Workshop.findById(targetWorkshopId);
-    if (!workshop) throw new AppError('Workshop not found', 404);
+    if (!workshop) {
+      console.warn(`[DEBUG] Workshop ${targetWorkshopId} not found`);
+      throw new AppError('Workshop not found', 404);
+    }
+    
     if (!workshop.ownerId || workshop.ownerId.toString() !== owner._id.toString()) {
+      console.warn(`[DEBUG] Ownership mismatch: workshop.ownerId=${workshop.ownerId}, requester._id=${owner._id}`);
       throw new AppError('Forbidden — you do not own this workshop', 403);
     }
-
-    // Create the Asgardeo account for the technician using the supplied password
-    let asgardeoSub = `pending-${Date.now()}`;
-    try {
+    
+    const isMock = owner.asgardeoSub && owner.asgardeoSub.startsWith('mock-');
+    const safeEmail = (email || '').toLowerCase();
+    let asgardeoSub = isMock ? `mock-staff-${safeEmail}` : `pending-${Date.now()}`;
+    
+    if (!isMock) {
+      try {
       const mePayload = {
         user: {
           username: email,
@@ -274,6 +302,7 @@ const registerStaff = async (req, res, next) => {
           ...(phone ? [{ key: 'http://wso2.org/claims/mobile', value: phone }] : []),
         ],
       };
+      
       const scimRes = await axios.post(
         `${ASGARDEO_BASE}/api/identity/user/v1.0/me`,
         mePayload,
@@ -283,34 +312,47 @@ const registerStaff = async (req, res, next) => {
     } catch (asgErr) {
       const errData = asgErr?.response?.data;
       const status  = asgErr?.response?.status;
-      console.error('[auth/staff] Asgardeo error:', errData ?? asgErr.message);
+      console.error('[auth/staff] Asgardeo registration failed:', {
+        status,
+        data: errData,
+        message: asgErr.message,
+        url: asgErr.config?.url
+      });
+      
       if (status === 409) {
         return res.status(409).json({ error: 'An Asgardeo account with this email already exists' });
       }
-      if (status === 403) {
-        return res.status(500).json({ error: 'Self-registration is disabled in Asgardeo — enable it in User Management → Self Registration' });
+      if (status === 401 || status === 403) {
+        // We return 400 instead of passing through 401 to prevent the mobile app 
+        // from logging the owner out (thinking their own token is invalid).
+        return res.status(400).json({ 
+          error: `Asgardeo Registration Failed: ${errData?.detail || errData?.message || 'Self-registration might be disabled in the Asgardeo Console.'}` 
+        });
       }
       return res.status(status ?? 500).json({ error: errData?.detail ?? errData?.message ?? 'Could not create Asgardeo account' });
     }
+}
 
     // Upsert the MongoDB staff record, now with the real asgardeoSub
-    const staffUser = await User.findOneAndUpdate(
-      { email: email.toLowerCase() },
-      {
-        $set: {
-          role:        'workshop_staff',
-          workshopId:  targetWorkshopId,
-          fullName:    `${firstName} ${lastName}`.trim(),
-          active:      true,
-          asgardeoSub,
-          ...(phone && { phone }),
-        },
-        $setOnInsert: {
-          email: email.toLowerCase(),
-        },
-      },
-      { upsert: true, new: true },
-    );
+    let staffUser = await User.findOne({ email: email.toLowerCase() });
+    
+    if (!staffUser) {
+      staffUser = new User({ email: email.toLowerCase() });
+    }
+
+    staffUser.role = 'workshop_staff';
+    staffUser.workshopId = targetWorkshopId;
+    staffUser.fullName = `${firstName} ${lastName}`.trim();
+    staffUser.active = true;
+    staffUser.asgardeoSub = asgardeoSub;
+    if (phone) staffUser.phone = phone;
+    
+    // Save password for mock accounts to allow verification during login bypass
+    if (isMock) {
+      staffUser.password = password;
+    }
+
+    await staffUser.save();
 
     // Also add to workshop.technicians array if not already there
     if (!workshop.technicians.some(t => t.toString() === staffUser._id.toString())) {
@@ -323,7 +365,6 @@ const registerStaff = async (req, res, next) => {
       user: staffUser,
     });
   } catch (err) {
-    console.error('[auth/staff] error:', err.message);
     if (err.code === 11000) {
       return res.status(409).json({ error: 'An account with this email already exists' });
     }
