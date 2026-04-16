@@ -12,18 +12,20 @@ describe('Badge Component', () => {
     const { getByText } = render(<Badge label="VSRMS" />);
     const text = getByText('VSRMS');
     
-    // In our mock, primaryText color is '#F56E0F'
-    // This is a snapshot test to ensure stability
-    expect(text.props.style).toContainEqual(expect.objectContaining({ color: '#F56E0F' }));
+    // Check that style is an array and contains color property
+    const styleObj = text.props.style.find((s: any) => s?.color);
+    expect(styleObj?.color).toBe('#F56E0F');
   });
 
   test('renders different variants correctly', () => {
     const { getByText: getSuccess } = render(<Badge label="Success" variant="success" />);
-    // successText color in mock is '#15803D'
-    expect(getSuccess('Success').props.style).toContainEqual(expect.objectContaining({ color: '#15803D' }));
+    const successText = getSuccess('Success');
+    const successStyle = successText.props.style.find((s: any) => s?.color);
+    expect(successStyle?.color).toBe('#15803D');
 
     const { getByText: getError } = render(<Badge label="Error" variant="error" />);
-    // errorText color in mock is '#DC2626'
-    expect(getError('Error').props.style).toContainEqual(expect.objectContaining({ color: '#DC2626' }));
+    const errorText = getError('Error');
+    const errorStyle = errorText.props.style.find((s: any) => s?.color);
+    expect(errorStyle?.color).toBe('#DC2626');
   });
 });

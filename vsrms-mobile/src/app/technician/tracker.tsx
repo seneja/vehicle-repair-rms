@@ -38,7 +38,7 @@ export default function StaffTrackerScreen() {
         <AppointmentCard 
           appointment={item} 
           isTechnician={true}
-          onFinalize={() => handleComplete(item._id!)}
+          onFinalize={() => handleComplete((item.id || item._id)!)}
         />
       )}
       // @ts-ignore

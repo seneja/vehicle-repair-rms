@@ -57,13 +57,13 @@ function BookingCard({
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={styles.declineBtn}
-            onPress={() => onStatusChange(appt._id!, 'cancelled')}
+            onPress={() => onStatusChange((appt.id || appt._id)!, 'cancelled')}
           >
             <Text style={styles.declineText}>Decline</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.approveBtn}
-            onPress={() => onStatusChange(appt._id!, 'confirmed')}
+            onPress={() => onStatusChange((appt.id || appt._id)!, 'confirmed')}
           >
             <Text style={styles.approveText}>Approve</Text>
           </TouchableOpacity>
@@ -74,7 +74,7 @@ function BookingCard({
         <View style={styles.actionContainer}>
           <TouchableOpacity
             style={styles.actionBtn}
-            onPress={() => onStatusChange(appt.id!, 'in_progress')}
+            onPress={() => onStatusChange((appt.id || appt._id)!, 'in_progress')}
           >
             <Ionicons name="play-circle" size={18} color="#FFFFFF" />
             <Text style={styles.actionBtnText}>Start Repair Job</Text>
@@ -129,7 +129,7 @@ export default function BookingsScreen() {
           </View>
           <TouchableOpacity
             style={styles.jobsBtn}
-            onPress={() => router.push('/owner/jobs' as any)}
+            onPress={() => router.push({ pathname: '/owner/jobs', params: { workshopId: targetWorkshopId === 'all' ? undefined : targetWorkshopId } } as any)}
           >
             <Ionicons name="hammer-outline" size={20} color="#FFFFFF" />
             <Text style={styles.jobsBtnText}>Jobs</Text>

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authKeys } from './auth.keys';
+import { workshopKeys } from '@/features/workshops/queries/workshops.keys';
 import { updateMe, deactivateUser, registerStaff, RegisterStaffPayload } from '../api/auth.api';
 import { useToast } from '@/providers/ToastProvider';
 import { handleApiError } from '@/services/error.handler';
@@ -38,8 +39,11 @@ export function useRegisterStaff() {
 
   return useMutation({
     mutationFn: (payload: RegisterStaffPayload) => registerStaff(payload),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: authKeys.staff() });
+      if (variables.workshopId) {
+        qc.invalidateQueries({ queryKey: workshopKeys.technicians(variables.workshopId) });
+      }
       showToast('Technician registered successfully', 'success');
     },
     onError: (e: any) => showToast(handleApiError(e), 'error'),

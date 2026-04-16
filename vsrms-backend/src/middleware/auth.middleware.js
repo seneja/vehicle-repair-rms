@@ -41,8 +41,11 @@ const protect = async (req, res, next) => {
 
   // ⚠️ DEVELOPMENT BYPASS: Multi-Role Mock Logic
   if (token && token.startsWith('mock-')) {
-    const role = token.split('-').slice(1).join('-'); // e.g., customer, admin, workshop_owner, workshop_staff
-    const mockEmail = `${role}@bypass.com`;
+    let role = token.split('-').slice(1).join('-'); // e.g., customer, admin, workshop_owner, workshop_staff
+    if (token.startsWith('mock-staff-')) {
+      role = 'workshop_staff';
+    }
+    const mockEmail = token.startsWith('mock-staff-') ? token.replace('mock-staff-', '') : `${role}@bypass.com`;
 
     try {
       // 1. Try to find the seeded mock user first

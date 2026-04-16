@@ -15,10 +15,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 
 function ApptCard({
   appt,
-  onAccept
+  onStart,
+  onFinalize
 }: {
   appt: Appointment;
-  onAccept: (id: string) => void
+  onStart: (id: string) => void;
+  onFinalize: (id: string) => void;
 }) {
   const customerName = appt.userId && typeof appt.userId === 'object' ? appt.userId.fullName : 'Customer';
   const vehicleName = appt.vehicleId && typeof appt.vehicleId === 'object' ? `${appt.vehicleId.make} ${appt.vehicleId.model}` : 'Vehicle';
@@ -39,10 +41,17 @@ function ApptCard({
         <Text style={styles.ownerText}>{customerName} • {vehicleName}</Text>
       </View>
 
-      {appt.status === 'pending' && (
-        <TouchableOpacity style={styles.acceptBtn} onPress={() => onAccept(appt._id!)}>
-          <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
-          <Text style={styles.acceptText}>Accept Job</Text>
+      {appt.status === 'confirmed' && (
+        <TouchableOpacity style={styles.startBtn} onPress={() => onStart((appt.id || appt._id)!)}>
+          <Ionicons name="play-circle-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.startText}>Start Repair</Text>
+        </TouchableOpacity>
+      )}
+
+      {appt.status === 'in_progress' && (
+        <TouchableOpacity style={styles.finalizeBtn} onPress={() => onFinalize((appt.id || appt._id)!)}>
+          <Ionicons name="checkmark-done-circle-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.finalizeText}>Finalize Job</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -51,9 +60,9 @@ function ApptCard({
 
 export default function TechnicianAppointmentsScreen() {
   const router = useRouter();
-  const { status: initialStatus } = useLocalSearchParams<{ status: 'pending' | 'confirmed' | 'completed' }>();
+  const { status: initialStatus } = useLocalSearchParams<{ status: 'confirmed' | 'completed' }>();
   const { user } = useAuth();
-  const [status, setStatus] = useState<'pending' | 'confirmed' | 'completed'>(initialStatus || 'pending');
+  const [status, setStatus] = useState<'confirmed' | 'completed'>(initialStatus || 'confirmed');
 
   const { data, isLoading, isError, refetch } = useWorkshopAppointments(user?.workshopId, status);
   const { mutate: updateStatus } = useUpdateAppointmentStatus();
@@ -75,10 +84,6 @@ export default function TechnicianAppointmentsScreen() {
       setStatus(initialStatus);
     }
   }, [initialStatus]);
-
-  const handleAccept = (id: string) => {
-    updateStatus({ id, status: 'confirmed' });
-  };
 
   const handleStart = (id: string) => {
     updateStatus({ id, status: 'in_progress' });
@@ -106,7 +111,7 @@ export default function TechnicianAppointmentsScreen() {
 
         {/* Custom Tabs */}
         <View style={styles.tabContainer}>
-          {(['pending', 'confirmed', 'completed'] as const).map((s) => (
+          {(['confirmed', 'completed'] as const).map((s) => (
             <TouchableOpacity
               key={s}
               onPress={() => setStatus(s)}
@@ -133,7 +138,13 @@ export default function TechnicianAppointmentsScreen() {
         ) : (
           <FlashList<Appointment>
             data={data || []}
-            renderItem={({ item }) => <ApptCard appt={item} onAccept={handleAccept} />}
+            renderItem={({ item }) => (
+              <ApptCard 
+                appt={item} 
+                onStart={handleStart} 
+                onFinalize={handleFinalize} 
+              />
+            )}
             // @ts-expect-error - FlashList requires estimatedItemSize dynamically
             estimatedItemSize={140}
             onRefresh={refetch}
@@ -211,6 +222,8 @@ const styles = StyleSheet.create((theme) => ({
   dateText: { fontSize: 12, fontWeight: '700', color: '#6B7280' },
   serviceTitle: { fontSize: 16, fontWeight: '900', color: '#1A1A2E', marginBottom: 4 },
   ownerText: { fontSize: 13, color: '#6B7280', fontWeight: '600' },
-  acceptBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F56E0F', paddingVertical: 14, gap: 8 },
-  acceptText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
+  startBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3B82F6', paddingVertical: 14, gap: 8 },
+  startText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
+  finalizeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#10B981', paddingVertical: 14, gap: 8 },
+  finalizeText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
 }));

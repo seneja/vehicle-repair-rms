@@ -7,6 +7,10 @@ module.exports = {
   moduleNameMapper: {
     // Mock unistyles which doesn't work well in node test environment without browser context
     '^react-native-unistyles$': '<rootDir>/src/lib/__mocks__/unistyles-mock.ts',
+    '^@/lib/unistyles-compat$': '<rootDir>/src/lib/__mocks__/unistyles-mock.ts',
+    '.*/theme/tokens$': '<rootDir>/src/theme/__mocks__/tokens.ts',
+    '^@/theme/tokens$': '<rootDir>/src/theme/__mocks__/tokens.ts',
+    '^@/theme/typography$': '<rootDir>/src/theme/__mocks__/tokens.ts',
   },
   collectCoverage: true,
   collectCoverageFrom: [

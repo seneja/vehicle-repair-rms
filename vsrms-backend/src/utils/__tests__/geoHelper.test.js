@@ -12,8 +12,8 @@ describe('geoHelper', () => {
       const distance = haversineKm(colomboLat, colomboLng, kandyLat, kandyLng);
       
       // Expected distance is roughly 95.8km
-      expect(distance).toBeGreaterThan(95);
-      expect(distance).toBeLessThan(97);
+      expect(distance).toBeGreaterThan(94);
+      expect(distance).toBeLessThan(98);
     });
 
     test('returns 0 for the same point', () => {

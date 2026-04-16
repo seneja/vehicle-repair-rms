@@ -7,17 +7,15 @@
 module.exports = {
   testEnvironment: 'node',
   verbose: true,
-  collectCoverage: true,
-  coverageDirectory: 'coverage',
+  testMatch: ['**/__tests__/**/*.test.js', '**/*.test.js'],
   collectCoverageFrom: [
     'src/**/*.js',
+    '!src/**/*.test.js',
     '!src/config/**',
-    '!**/node_modules/**',
   ],
-  testMatch: [
-    '**/__tests__/**/*.js?(x)',
-    '**/?(*.)+(spec|test).js?(x)',
-  ],
-  // Ensure we don't pick up mobile tests
   modulePathIgnorePatterns: ['<rootDir>/../vsrms-mobile/'],
+  moduleNameMapper: {
+    '^jose$': '<rootDir>/src/utils/__tests__/empty-mock.js',
+    '^jwks-rsa$': '<rootDir>/src/utils/__tests__/empty-mock.js',
+  },
 };

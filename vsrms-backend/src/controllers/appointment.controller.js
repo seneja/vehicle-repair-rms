@@ -190,9 +190,6 @@ const getWorkshopAppointments = async (req, res, next) => {
     const { status } = req.query;
     const { workshopId } = req.params;
 
-    console.log(`[DEBUG] Fetching appointments for WS: ${workshopId}, Status: ${status}`);
-    console.log(`[DEBUG] User Role: ${req.user.role}, User WS_ID: ${req.user.workshopId}`);
-
     let filter = {};
 
     // If workshopId is 'all' or missing (and user is owner), find all their workshops
@@ -211,7 +208,6 @@ const getWorkshopAppointments = async (req, res, next) => {
       // Validate that workshopId is a valid MongoDB ObjectId to prevent cast errors
       const mongoose = require('mongoose');
       if (!mongoose.Types.ObjectId.isValid(workshopId)) {
-        console.warn(`[DEBUG] Invalid Workshop ID received: ${workshopId}`);
         // If staff, try self-healing immediately
         if (req.user.role === 'workshop_staff') {
           const correctWS = await Workshop.findOne({ technicians: req.user._id }).select('_id');
@@ -229,7 +225,6 @@ const getWorkshopAppointments = async (req, res, next) => {
         const wsExists = await Workshop.findById(workshopId).select('_id');
         if (!wsExists && req.user.role === 'workshop_staff') {
           // Try self-healing: find the workshop that actually lists this user
-          console.log(`[DEBUG] Workshop ${workshopId} not found. Attempting universal self-healing...`);
           const correctWS = await Workshop.findOne({ technicians: req.user._id }).select('_id');
           if (correctWS) {
             filter.workshopId = correctWS._id;
@@ -252,8 +247,6 @@ const getWorkshopAppointments = async (req, res, next) => {
       filter.status = statuses.length === 1 ? statuses[0] : { $in: statuses };
     }
 
-    console.log(`[DEBUG] Final MongoDB Filter:`, JSON.stringify(filter));
-
     const [data, total] = await Promise.all([
       Appointment.find(filter)
         .populate('userId', 'fullName email')
@@ -264,8 +257,6 @@ const getWorkshopAppointments = async (req, res, next) => {
         .sort({ scheduledDate: -1 }),
       Appointment.countDocuments(filter),
     ]);
-
-    console.log(`[DEBUG] Found ${data.length} appointments out of ${total} total.`);
     res.json({ data, page, limit, total, pages: Math.ceil(total / limit) });
   } catch (err) {
     next(err);

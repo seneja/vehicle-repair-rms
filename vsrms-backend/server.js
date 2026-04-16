@@ -77,12 +77,14 @@ app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 app.use(globalErrorHandler);
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () =>
-    console.log(` VSRMS API running on port ${PORT} [${process.env.NODE_ENV ?? 'development'}]`),
-  );
-});
+  connectDB().then(() => {
+    app.listen(PORT, () =>
+      console.log(` VSRMS API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`),
+    );
+  });
+}
 
 module.exports = app;

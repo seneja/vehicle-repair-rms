@@ -14,6 +14,11 @@ const mockTheme = {
     errorBackground: '#FEE2E2',
     successText: '#15803D',
     successBackground: '#DCFCE7',
+    errorText: '#DC2626',
+  },
+  typography: {
+    sizes: { xs: 10, sm: 12, md: 14, lg: 16, xl: 20 },
+    weights: { regular: '400', medium: '500', bold: '700' },
   },
   spacing: {
     xs: 4,

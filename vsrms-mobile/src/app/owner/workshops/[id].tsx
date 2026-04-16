@@ -20,7 +20,14 @@ const EMPTY_TECH = { firstName: '', lastName: '', email: '', phone: '', password
 // ── Technician card ───────────────────────────────────────────────────────────
 
 function TechCard({ member, onRemove }: { member: User; onRemove: () => void }) {
-  const initials = (member.fullName ?? member.email).split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+  const name = member.fullName || member.email;
+  const initials = name
+    .split(/[ @._-]/)
+    .filter(Boolean)
+    .map(n => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
   return (
     <View style={styles.techCard}>
       <View style={styles.techAvatar}>
@@ -293,7 +300,7 @@ export default function WorkshopManageScreen() {
               <TechCard
                 key={t.id ?? t.email}
                 member={t}
-                onRemove={() => handleRemoveTech(t.id!, t.fullName ?? t.email)}
+                onRemove={() => handleRemoveTech(t.id, t.fullName ?? t.email)}
               />
             ))
           )}
